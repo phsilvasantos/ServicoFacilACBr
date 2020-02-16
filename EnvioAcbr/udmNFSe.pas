@@ -117,7 +117,7 @@ end;
 
 function TdmNFSe.GetNotaCancelada: Boolean;
 begin
-  result := false;
+  result := (SQLLocate('NOTASERVICO','ID','STATUS_RPS', fDMCadNotaServico.cdsNotaServico_ConsultaID.AsString) = '2');
 end;
 
 function TdmNFSe.GetNotaEnviada: Boolean;
@@ -488,18 +488,19 @@ begin
       ACBrNFSe1.NotasFiscais.GravarXML('c:\temp\NfsOffline.xml');
     end;
 
+    if (GetNotaCancelada) then
+    begin
+      MessageDlg('Nota já Cancelada!',mtInformation,[mbOK],0);
+      Exit;
+    end;
+
     if (GetNotaEnviada) and (not OffLine) then
     begin
       if Application.MessageBox('Nota já foi enviada deseja imprimir? ', 'Atenção', 36) <> 6 then
         Abort;
     end;
 
-    if OffLine then
-    begin
-//      ACBrNFSe1.NotasFiscais.Items[vCont].NFSe.Producao := snNao;
-
-    end
-    else
+    if not OffLine then
     begin
       ACBrNFSe1.NotasFiscais.LoadFromString(fDMCadNotaServico.cdsNotaServico_ConsultaXML.AsVariant);
       if ACBrNFSe1.NotasFiscais.Items[vCont].NFSe.Numero = '' then
@@ -557,6 +558,12 @@ begin
   Caminho := fDMCadNotaServico.cdsParametrosENDXMLNFSE.AsString + '\Nfs.xml';
   vProtocolo := '';
   vCodigoVerificacao := '';
+
+  if GetNotaCancelada then
+  begin
+    MessageDlg('Nota já cancela!',mtInformation,[mbOK],0);
+    exit;
+  end;
 
   ACBrNFSe1.NotasFiscais.Clear;
   AlimentaComponente;
