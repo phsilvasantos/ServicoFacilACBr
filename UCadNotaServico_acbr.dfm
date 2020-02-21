@@ -77,7 +77,7 @@ object frmCadNotaServico_acbr: TfrmCadNotaServico_acbr
         WidthOfIndicator = 27
         DefaultRowHeight = 17
         ScrollBars = ssHorizontal
-        ColCount = 22
+        ColCount = 23
         RowCount = 2
         Columns = <
           item
@@ -148,6 +148,13 @@ object frmCadNotaServico_acbr: TfrmCadNotaServico_acbr
           end
           item
             Expanded = False
+            FieldName = 'CIDADE_TRIBUTACAO'
+            Title.Alignment = taCenter
+            Title.Caption = 'Cidade Tributa'#231#227'o'
+            Visible = True
+          end
+          item
+            Expanded = False
             FieldName = 'NUMRPS_SUBSTITUIDO'
             Title.Alignment = taCenter
             Title.Caption = 'N'#186' RPS Substitu'#237'do'
@@ -159,6 +166,7 @@ object frmCadNotaServico_acbr: TfrmCadNotaServico_acbr
             FieldName = 'SERIE_SUBSTITUIDO'
             Title.Alignment = taCenter
             Title.Caption = 'S'#233'rie Substitu'#237'do'
+            Width = 64
             Visible = True
           end
           item
@@ -226,6 +234,7 @@ object frmCadNotaServico_acbr: TfrmCadNotaServico_acbr
           item
             Expanded = False
             FieldName = 'NOME_PROVEDOR'
+            Width = 64
             Visible = True
           end
           item
@@ -510,7 +519,6 @@ object frmCadNotaServico_acbr: TfrmCadNotaServico_acbr
           Height = 17
           Caption = 'Gerar OffLine'
           TabOrder = 11
-          Visible = False
         end
       end
       object StaticText1: TStaticText
@@ -1506,7 +1514,7 @@ object frmCadNotaServico_acbr: TfrmCadNotaServico_acbr
           ParentFont = False
           TabOrder = 7
           Transparent = True
-          OnClick = btnEnviar_NFSeClick
+          OnClick = NxButton2Click
         end
       end
       object gbxLote_Protocolo: TRzGroupBox
@@ -3505,7 +3513,7 @@ object frmCadNotaServico_acbr: TfrmCadNotaServico_acbr
                 object btnInserir_Itens: TNxButton
                   Left = 2
                   Top = 3
-                  Width = 31
+                  Width = 27
                   Height = 29
                   Hint = 'Inserir um servi'#231'o'
                   Enabled = False
@@ -3818,7 +3826,7 @@ object frmCadNotaServico_acbr: TfrmCadNotaServico_acbr
               object DBMemo1: TDBMemo
                 Left = 36
                 Top = 18
-                Width = 683
+                Width = 914
                 Height = 65
                 Align = alClient
                 Ctl3D = False
@@ -4168,6 +4176,7 @@ object frmCadNotaServico_acbr: TfrmCadNotaServico_acbr
                     FieldName = 'lkNome_Conta'
                     Title.Alignment = taCenter
                     Title.Caption = 'Nome Conta'
+                    Width = 64
                     Visible = True
                   end
                   item

@@ -109,6 +109,8 @@ end;
 
 
 procedure TdmNFSe.ImprimirNfse;
+var
+  vCaminho : string;
 begin
   ACBrNFSe1.NotasFiscais.Imprimir;
   ACBrNFSe1.NotasFiscais.ImprimirPDF;
@@ -321,9 +323,13 @@ begin
         Servico.CodigoTributacaoMunicipio := fDMCadNotaServico.cdsFilialCOD_TRIBUTACAO_MUNICIPIO.AsString;
 
       if (NaturezaOperacao = no2) or (NaturezaOperacao = no63) then /// FORA DO MUNICIPIO
-        servico.CodigoMunicipio := fDMCadNotaServico.cdsNotaServico_ImpCODMUNICIPIO_CLI.AsString;
+      begin
+        servico.CodigoMunicipio := fDMCadNotaServico.cdsNotaServico_ImpCOD_MUNICIPIO_TRIB.AsString;
+        if servico.CodigoMunicipio = EmptyStr then
+          servico.CodigoMunicipio := fDMCadNotaServico.cdsNotaServico_ImpCODMUNICIPIO_CLI.AsString;
+      end;
 
-      if Servico.CodigoMunicipio = '' then
+      if Servico.CodigoMunicipio = EmptyStr then
         Servico.CodigoMunicipio := fDMCadNotaServico.cdsNotaServico_ImpCODMUNICIPIO_FIL.AsString;
 
       //Muda campos quando for homologação
@@ -490,10 +496,10 @@ begin
 
     if (GetNotaCancelada) then
     begin
-      MessageDlg('Nota já Cancelada!',mtInformation,[mbOK],0);
-      Exit;
-    end;
-
+      if Application.MessageBox('Nota já foi Cancelada deseja imprimir? ', 'Atenção', 36) <> 6 then
+        Abort;
+    end
+    else
     if (GetNotaEnviada) and (not OffLine) then
     begin
       if Application.MessageBox('Nota já foi enviada deseja imprimir? ', 'Atenção', 36) <> 6 then
@@ -528,18 +534,18 @@ begin
   else begin
     //TestarNotaPodeEnviar;
 //    try
-      (ACBrNFSe1.Enviar(vNumeroLote, False));
+      (ACBrNFSe1.Enviar(vNumeroLote, True));
       for i := 0 to vCont - 1 do
       begin
         if ACBrNFSe1.NotasFiscais.Items[i].NFSe.CodigoVerificacao <> '' then
         begin
           DataEmissaoRet := Now;
           ACBrNFSe1.NotasFiscais.GravarXML(Caminho);
-          prc_Gravar_Retorno(caminho);
+          prc_Gravar_Retorno(ACBrNFSe1.NotasFiscais.Items[i].NomeArq);
         end;
       end;
-      Sleep(1000);
-      ConsultaNfse;
+      Sleep(2000);
+//      ImprimirNfse;
 //    except
 //      on E: Exception do
 //        raise Exception.Create(e.message);
@@ -568,22 +574,22 @@ begin
   ACBrNFSe1.NotasFiscais.Clear;
   AlimentaComponente;
 
-  if ACBrNFSe1.ConsultarNFSeporRps(ACBrNFSe1.NotasFiscais.Items[vCont].NFSe.IdentificacaoRps.Numero,
-    ACBrNFSe1.NotasFiscais.Items[vCont].NFSe.IdentificacaoRps.Serie,
-    TipoRPSToStr(ACBrNFSe1.NotasFiscais.Items[vCont].NFSe.IdentificacaoRps.Tipo)) then
+  if ACBrNFSe1.ConsultarNFSeporRps(ACBrNFSe1.NotasFiscais.Items[0].NFSe.IdentificacaoRps.Numero,
+    ACBrNFSe1.NotasFiscais.Items[0].NFSe.IdentificacaoRps.Serie,
+    TipoRPSToStr(ACBrNFSe1.NotasFiscais.Items[0].NFSe.IdentificacaoRps.Tipo)) then
   begin
-    vCodigoVerificacao := ACBrNFSe1.WebServices.ConsNfseRps.RetornoNFSe.ListaNfse.CompNfse.Items[vCont].Nfse.CodigoVerificacao;
-    vNumero := ACBrNFSe1.WebServices.ConsNfseRps.RetornoNFSe.ListaNfse.CompNfse.Items[vCont].Nfse.Numero;
-    vDataEmissao :=  ACBrNFSe1.WebServices.ConsNfseRps.RetornoNFSe.ListaNfse.CompNfse.Items[vCont].Nfse.DataEmissao;
+    vCodigoVerificacao := ACBrNFSe1.WebServices.ConsNfseRps.RetornoNFSe.ListaNfse.CompNfse.Items[0].Nfse.CodigoVerificacao;
+    vNumero := ACBrNFSe1.WebServices.ConsNfseRps.RetornoNFSe.ListaNfse.CompNfse.Items[0].Nfse.Numero;
+    vDataEmissao :=  ACBrNFSe1.WebServices.ConsNfseRps.RetornoNFSe.ListaNfse.CompNfse.Items[0].Nfse.DataEmissao;
     if vCodigoVerificacao <> '' then
     begin
       DataEmissaoRet := Now;
       ACBrNFSe1.NotasFiscais.Clear;
       AlimentaComponente;
-      ACBrNFSe1.NotasFiscais.Items[vCont].NFSe.CodigoVerificacao := vCodigoVerificacao;
-      ACBrNFSe1.NotasFiscais.Items[vCont].NFSe.Numero := vNumero;
+      ACBrNFSe1.NotasFiscais.Items[0].NFSe.CodigoVerificacao := vCodigoVerificacao;
+      ACBrNFSe1.NotasFiscais.Items[0].NFSe.Numero := vNumero;
 
-      ACBrNFSe1.NotasFiscais.Items[vCont].GravarXML(ExtractFileName(Caminho), ExtractFilePath(Caminho));
+      ACBrNFSe1.NotasFiscais.Items[0].GravarXML(ExtractFileName(Caminho), ExtractFilePath(Caminho));
       GetNotaEnviada;
       prc_Gravar_Retorno(Caminho);
     end;
@@ -664,7 +670,7 @@ begin
     fDMCadNotaServico.cdsNotaServico_ComunicacaoNFSE_NUMERO.AsString := ACBrNFSe1.NotasFiscais.Items[vCont].NFSe.Numero;
     fDMCadNotaServico.cdsNotaServico_ComunicacaoCODIGOVERIFICACAO.AsString := ACBrNFSe1.NotasFiscais.Items[vCont].NFSe.CodigoVerificacao;
     fDMCadNotaServico.cdsNotaServico_ComunicacaoTIPO.AsString := '2';
-    fDMCadNotaServico.cdsNotaServico_ComunicacaoXML.LoadFromFile(Caminho);
+    fDMCadNotaServico.cdsNotaServico_ComunicacaoXML.LoadFromFile(ACBrNFSe1.NotasFiscais.Items[0].NomeArq);
     fDMCadNotaServico.cdsNotaServico_Comunicacao.Post;
     fDMCadNotaServico.cdsNotaServico_Comunicacao.ApplyUpdates(0);
   end;
@@ -984,7 +990,7 @@ begin
       vDiscriminacao := vDiscriminacao + ' ' + fDMCadNotaServico.cdsNotaServico_Imp_ItensNUM_OS_PED.AsString + ' ';
     //*********************
 
-    vDiscriminacao := vDiscriminacao + '  Valor RS ' + FormatFloat('###,###,##0.00',fDMCadNotaServico.cdsNotaServico_Imp_ItensVLR_TOTAL.AsFloat) + ')';
+//    vDiscriminacao := vDiscriminacao + '  Valor RS ' + FormatFloat('###,###,##0.00',fDMCadNotaServico.cdsNotaServico_Imp_ItensVLR_TOTAL.AsFloat) + ')';
 
     fDMCadNotaServico.cdsNotaServico_Imp_Itens.Next;
   end;
@@ -1053,10 +1059,10 @@ begin
   if trim(fDMCadNotaServico.cdsNotaServico_ImpDISCRIMINACAO.Value) <> '' then
     vDiscriminacao := vDiscriminacao + '   (' + fDMCadNotaServico.cdsNotaServico_ImpDISCRIMINACAO.Value + ')';
   //Mês/Ano Referente
-  if (fDMCadNotaServico.cdsNotaServico_ImpANO_REF.AsInteger > 0) and (fDMCadNotaServico.cdsNotaServico_ImpMES_REF.AsInteger > 0) and
-     (fDMCadNotaServico.cdsParametrosIMP_MESANO_REF_NOITEM_NFSE.AsString <> 'S') then
-    vDiscriminacao := vDiscriminacao + '   (Mês/Ano Ref.: ' + fDMCadNotaServico.cdsNotaServico_ImpMES_REF.AsString + '/' +
-                      fDMCadNotaServico.cdsNotaServico_ImpANO_REF.AsString +   ')';
+//  if (fDMCadNotaServico.cdsNotaServico_ImpANO_REF.AsInteger > 0) and (fDMCadNotaServico.cdsNotaServico_ImpMES_REF.AsInteger > 0) and
+//     (fDMCadNotaServico.cdsParametrosIMP_MESANO_REF_NOITEM_NFSE.AsString <> 'S') then
+//    vDiscriminacao := vDiscriminacao + '   (Mês/Ano Ref.: ' + fDMCadNotaServico.cdsNotaServico_ImpMES_REF.AsString + '/' +
+//                      fDMCadNotaServico.cdsNotaServico_ImpANO_REF.AsString +   ')';
   //Lei 12.741/12
   if StrToFloat(FormatFloat('0.00',fDMCadNotaServico.cdsNotaServico_ImpVLR_TRIBUTO.AsFloat)) > 0 then
   begin
@@ -1113,10 +1119,10 @@ begin
   if not (fDMCadNotaServico.cdsNotaServico.IsEmpty) then
   begin
     fDMCadNotaServico.cdsNotaServico.Edit;
-    fDMCadNotaServico.cdsNotaServicoPROTOCOLO.AsString := ACBrNFSe1.NotasFiscais.Items[vCont].NFSe.Protocolo;
-    fDMCadNotaServico.cdsNotaServicoCOD_AUTENCIDADE_RET.AsString := ACBrNFSe1.NotasFiscais.Items[vCont].NFSe.CodigoVerificacao;
-    fDMCadNotaServico.cdsNotaServicoNUMNOTA.AsString := ACBrNFSe1.NotasFiscais.Items[vCont].NFSe.Numero;
-    fDMCadNotaServico.cdsNotaServicoDTRECEBIMENTO_RET.AsDateTime := ACBrNFSe1.NotasFiscais.Items[vCont].NFSe.dhRecebimento;
+    fDMCadNotaServico.cdsNotaServicoPROTOCOLO.AsString := ACBrNFSe1.NotasFiscais.Items[0].NFSe.Protocolo;
+    fDMCadNotaServico.cdsNotaServicoCOD_AUTENCIDADE_RET.AsString := ACBrNFSe1.NotasFiscais.Items[0].NFSe.CodigoVerificacao;
+    fDMCadNotaServico.cdsNotaServicoNUMNOTA.AsString := ACBrNFSe1.NotasFiscais.Items[0].NFSe.Numero;
+    fDMCadNotaServico.cdsNotaServicoDTRECEBIMENTO_RET.AsDateTime := ACBrNFSe1.NotasFiscais.Items[0].NFSe.dhRecebimento;
     if fDMCadNotaServico.cdsNotaServicoDT_EMISSAO_RET.AsString = '' then
       fDMCadNotaServico.cdsNotaServicoDT_EMISSAO_RET.AsString := DateTimeToStr(DataEmissaoRet);
     fDMCadNotaServico.cdsNotaServicoXML.LoadFromFile(Caminho);
@@ -1131,10 +1137,10 @@ begin
       fDMCadNotaServico.cdsNotaServico_Comunicacao.Insert;
       fDMCadNotaServico.cdsNotaServico_ComunicacaoID.AsInteger := dmDatabase.ProximaSequencia('NOTASERVICO_COMUNICACAO',0);
     end;
-    fDMCadNotaServico.cdsNotaServico_ComunicacaoDATA_HORA.AsDateTime := ACBrNFSe1.NotasFiscais.Items[vCont].NFSe.dhRecebimento;
+    fDMCadNotaServico.cdsNotaServico_ComunicacaoDATA_HORA.AsDateTime := ACBrNFSe1.NotasFiscais.Items[0].NFSe.dhRecebimento;
     fDMCadNotaServico.cdsNotaServico_ComunicacaoID_NOTASERVICO.AsInteger := fDMCadNotaServico.cdsNotaServico_ConsultaID.AsInteger;
-    fDMCadNotaServico.cdsNotaServico_ComunicacaoNFSE_NUMERO.AsString := ACBrNFSe1.NotasFiscais.Items[vCont].NFSe.Numero;
-    fDMCadNotaServico.cdsNotaServico_ComunicacaoCODIGOVERIFICACAO.AsString := ACBrNFSe1.NotasFiscais.Items[vCont].NFSe.CodigoVerificacao;
+    fDMCadNotaServico.cdsNotaServico_ComunicacaoNFSE_NUMERO.AsString := ACBrNFSe1.NotasFiscais.Items[0].NFSe.Numero;
+    fDMCadNotaServico.cdsNotaServico_ComunicacaoCODIGOVERIFICACAO.AsString := ACBrNFSe1.NotasFiscais.Items[0].NFSe.CodigoVerificacao;
     fDMCadNotaServico.cdsNotaServico_ComunicacaoTIPO.AsString := '1';
     fDMCadNotaServico.cdsNotaServico_ComunicacaoXML.LoadFromFile(Caminho);
     fDMCadNotaServico.cdsNotaServico_Comunicacao.Post;

@@ -342,6 +342,7 @@ type
     procedure pnlClienteEnter(Sender: TObject);
     procedure BitBtn1Click(Sender: TObject);
     procedure btnConsultar_NFSeClick(Sender: TObject);
+    procedure NxButton2Click(Sender: TObject);
   private
     { Private declarations }
     vEnvioACBR : Boolean;
@@ -2863,7 +2864,7 @@ begin
   if (Shift = [ssCtrl]) and (Key = 87) then
   begin
     chkGravaXML.Visible := not(chkGravaXML.Visible);
-    chkOffLine.Visible := not(chkOffLine.Visible);
+//    chkOffLine.Visible := not(chkOffLine.Visible);
     BitBtn1.Visible   := not(BitBtn1.Visible);
   end;
 end;
@@ -4506,6 +4507,11 @@ begin
     prc_Consultar(0);
   end;
 
+end;
+
+procedure TfrmCadNotaServico_acbr.NxButton2Click(Sender: TObject);
+begin
+  ShowMessage('Função ainda não implementada!!');
 end;
 
 end.
