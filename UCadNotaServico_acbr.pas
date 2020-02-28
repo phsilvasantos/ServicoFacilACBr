@@ -2018,11 +2018,35 @@ begin
     vFilial_Sel     := 0;
     fDMNFSe.vNumeroLote := fDMCadNotaServico.fnc_Buscar_NumLote(fDMCadNotaServico.cdsFilialID.AsInteger);
     vNumLote_NFSe := fDMNFSe.vNumeroLote;
-    fDMCadNotaServico.cdsNotaServico_Consulta.First;
-    while not fDMCadNotaServico.cdsNotaServico_Consulta.Eof do
-    begin
-      if (SMDBGrid1.SelectedRows.CurrentRowSelected) then
-      begin
+//    fDMCadNotaServico.cdsNotaServico_Consulta.First;
+//    while not fDMCadNotaServico.cdsNotaServico_Consulta.Eof do
+//    begin
+//      if (SMDBGrid1.SelectedRows.CurrentRowSelected) then
+//      begin
+//        if (fnc_Existe_Nota) then
+//        begin
+//          if fDMCadNotaServico.cdsFilialID.AsInteger <> fDMCadNotaServico.cdsNotaServico_ConsultaFILIAL.AsInteger then
+//            fDMCadNotaServico.cdsFilial.Locate('ID',fDMCadNotaServico.cdsNotaServico_ConsultaFILIAL.AsInteger,[loCaseInsensitive]);
+//
+//          vFilial_Sel := fDMCadNotaServico.cdsNotaServico_ConsultaFILIAL.AsInteger;
+//          if (fDMCadNotaServico.cdsNotaServico_ConsultaNUMLOTE.AsInteger > 0) then
+//          begin
+//            vNumLote_NFSe := fDMCadNotaServico.cdsNotaServico_ConsultaNUMLOTE.AsInteger;
+//            if (vNumLoteAnt > 0) and (vNumLoteAnt <> vNumLote_NFSe) then
+//              vNumLoteAnt := -99
+//            else
+//              vNumLoteAnt := fDMCadNotaServico.cdsNotaServico_ConsultaNUMLOTE.AsInteger;
+//          end;
+//          if trim(fDMCadNotaServico.cdsNotaServico_ConsultaPROTOCOLO.AsString) <> '' then
+//            vProtocolo_Ret := fDMCadNotaServico.cdsNotaServico_ConsultaPROTOCOLO.AsString;
+//
+//          fDMNFSe.prc_Abrir_NotaServico_Comunicacao(fDMCadNotaServico.cdsNotaServico_ConsultaID.AsInteger);
+//          fdmNFSe.AlimentaComponente;
+//          Inc(fDMNFSe.vCont);
+//        end;
+//      end;
+
+
         if (fnc_Existe_Nota) then
         begin
           if fDMCadNotaServico.cdsFilialID.AsInteger <> fDMCadNotaServico.cdsNotaServico_ConsultaFILIAL.AsInteger then
@@ -2044,12 +2068,13 @@ begin
           fdmNFSe.AlimentaComponente;
           Inc(fDMNFSe.vCont);
         end;
-      end;
-      fDMCadNotaServico.cdsNotaServico_Consulta.Next;
-    end;
 
-    if vNumLoteAnt = -99 then
-      raise Exception.Create('*** Foram selecionados lotes diferentes para a mesma remessa, selecione novamente e faça o envio!');
+
+//      fDMCadNotaServico.cdsNotaServico_Consulta.Next;
+//    end;
+
+//    if vNumLoteAnt = -99 then
+//      raise Exception.Create('*** Foram selecionados lotes diferentes para a mesma remessa, selecione novamente e faça o envio!');
     fDMNFSe.Enviar_Nfse;
   finally
     FreeAndNil(fDMNFSe);

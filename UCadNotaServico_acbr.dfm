@@ -1,6 +1,6 @@
 object frmCadNotaServico_acbr: TfrmCadNotaServico_acbr
-  Left = 111
-  Top = 13
+  Left = 94
+  Top = 15
   Width = 1232
   Height = 715
   Caption = 'Nota Servi'#231'o'
@@ -47,7 +47,7 @@ object frmCadNotaServico_acbr: TfrmCadNotaServico_acbr
         BorderStyle = bsNone
         Ctl3D = False
         DataSource = DMCadNotaServico.dsNotaServico_Consulta
-        Options = [dgTitles, dgIndicator, dgColumnResize, dgColLines, dgRowLines, dgTabs, dgRowSelect, dgAlwaysShowSelection, dgConfirmDelete, dgCancelOnExit, dgMultiSelect]
+        Options = [dgTitles, dgIndicator, dgColumnResize, dgColLines, dgRowLines, dgTabs, dgRowSelect, dgAlwaysShowSelection, dgConfirmDelete, dgCancelOnExit]
         ParentCtl3D = False
         ReadOnly = True
         TabOrder = 2
@@ -70,7 +70,7 @@ object frmCadNotaServico_acbr: TfrmCadNotaServico_acbr
         GridStyle.EvenColor = clWindow
         TitleHeight.PixelCount = 24
         FooterColor = clBtnFace
-        ExOptions = [eoCheckBoxSelect, eoENTERlikeTAB, eoKeepSelection, eoStandardPopup, eoBLOBEditor, eoTitleWordWrap, eoShowFilterBar]
+        ExOptions = [eoENTERlikeTAB, eoKeepSelection, eoStandardPopup, eoBLOBEditor, eoTitleWordWrap, eoShowFilterBar]
         OnGetCellParams = SMDBGrid1GetCellParams
         RegistryKey = 'Software\Scalabium'
         RegistrySection = 'SMDBGrid'
@@ -151,6 +151,14 @@ object frmCadNotaServico_acbr: TfrmCadNotaServico_acbr
             FieldName = 'CIDADE_TRIBUTACAO'
             Title.Alignment = taCenter
             Title.Caption = 'Cidade Tributa'#231#227'o'
+            Width = 64
+            Visible = True
+          end
+          item
+            Expanded = False
+            FieldName = 'VLR_SERVICOS'
+            Title.Alignment = taCenter
+            Title.Caption = 'Vlr. Servi'#231'os'
             Visible = True
           end
           item
@@ -167,13 +175,6 @@ object frmCadNotaServico_acbr: TfrmCadNotaServico_acbr
             Title.Alignment = taCenter
             Title.Caption = 'S'#233'rie Substitu'#237'do'
             Width = 64
-            Visible = True
-          end
-          item
-            Expanded = False
-            FieldName = 'VLR_SERVICOS'
-            Title.Alignment = taCenter
-            Title.Caption = 'Vlr. Servi'#231'os'
             Visible = True
           end
           item

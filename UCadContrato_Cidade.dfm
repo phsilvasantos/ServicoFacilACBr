@@ -316,7 +316,7 @@ object frmCadContrato_Cidade: TfrmCadContrato_Cidade
   end
   object chkInativo: TDBCheckBox
     Left = 352
-    Top = 38
+    Top = 36
     Width = 97
     Height = 17
     Caption = 'Inativo'
@@ -338,7 +338,7 @@ object frmCadContrato_Cidade: TfrmCadContrato_Cidade
   end
   object chkISSRetido: TDBCheckBox
     Left = 352
-    Top = 56
+    Top = 54
     Width = 97
     Height = 17
     Caption = 'ISS Retido'
