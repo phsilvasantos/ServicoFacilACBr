@@ -65,6 +65,8 @@ type
     function GetNFSE_NUMERO_Enviada: String;
     function GetNotaEnviada: Boolean;
     procedure prc_Gravar_Retorno(Caminho : String);
+    function ZeroLeft(vZero: string; vQtd: integer): string;
+
   public
     { Public declarations }
     fDMCadNotaServico: TDMCadNotaServico;
@@ -114,7 +116,7 @@ var
 begin
   ACBrNFSe1.NotasFiscais.Imprimir;
   ACBrNFSe1.NotasFiscais.ImprimirPDF;
-  EnviarEmailNfse;
+//  EnviarEmailNfse;
 end;
 
 function TdmNFSe.GetNotaCancelada: Boolean;
@@ -222,7 +224,8 @@ begin
     with NotasFiscais.Add.NFSe do
     begin
       if fDMCadNotaServico.cdsNotaServico_ImpMES_REF.AsInteger > 0 then
-        Competencia := fDMCadNotaServico.cdsNotaServico_ImpAno_REF.AsString + Formatar_Campo(fDMCadNotaServico.cdsNotaServico_ImpMES_REF.AsString,2)
+//        Competencia := fDMCadNotaServico.cdsNotaServico_ImpAno_REF.AsString + Formatar_Campo(fDMCadNotaServico.cdsNotaServico_ImpMES_REF.AsString,2)
+        Competencia := fDMCadNotaServico.cdsNotaServico_ImpAno_REF.AsString + ZeroLeft(fDMCadNotaServico.cdsNotaServico_ImpMES_REF.AsString,2)
       else
         Competencia := FormatDateTime('yyyy/mm',fDMCadNotaServico.cdsNotaServico_ImpDTEMISSAO_CAD.AsDateTime);
 
@@ -534,7 +537,7 @@ begin
   else begin
     //TestarNotaPodeEnviar;
 //    try
-      (ACBrNFSe1.Enviar(vNumeroLote, True));
+      (ACBrNFSe1.Enviar(vNumeroLote, False));
       for i := 0 to vCont - 1 do
       begin
         if ACBrNFSe1.NotasFiscais.Items[i].NFSe.CodigoVerificacao <> '' then
@@ -542,10 +545,12 @@ begin
           DataEmissaoRet := Now;
           ACBrNFSe1.NotasFiscais.GravarXML(Caminho);
           prc_Gravar_Retorno(ACBrNFSe1.NotasFiscais.Items[i].NomeArq);
+          ACBrNFSe1.NotasFiscais.Items[i].NFSe.Competencia :=
+           fDMCadNotaServico.cdsNotaServico_ImpAno_REF.AsString + ZeroLeft(fDMCadNotaServico.cdsNotaServico_ImpMES_REF.AsString,2);
         end;
       end;
-      Sleep(2000);
-//      ImprimirNfse;
+//      Sleep(2000);
+      ImprimirNfse;
 //    except
 //      on E: Exception do
 //        raise Exception.Create(e.message);
@@ -1146,6 +1151,20 @@ begin
     fDMCadNotaServico.cdsNotaServico_Comunicacao.Post;
     fDMCadNotaServico.cdsNotaServico_Comunicacao.ApplyUpdates(0);
   end;
+end;
+
+function TdmNFSe.ZeroLeft(vZero: string; vQtd: integer): string;
+var
+  i, vTam: integer;
+  vAux: string;
+begin
+  vAux := vZero;
+  vTam := length( vZero );
+  vZero := '';
+  for i := 1 to vQtd - vTam do
+  vZero := '0' + vZero;
+  vAux := vZero + vAux;
+  result := vAux;
 end;
 
 end.
