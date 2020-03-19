@@ -1443,7 +1443,7 @@ object frmCadNotaServico_acbr: TfrmCadNotaServico_acbr
           Transparent = True
           OnClick = btnConsRpsClick
         end
-        object NxButton2: TNxButton
+        object btnSubstituto: TNxButton
           Left = 847
           Top = 1
           Width = 141
@@ -1515,7 +1515,7 @@ object frmCadNotaServico_acbr: TfrmCadNotaServico_acbr
           ParentFont = False
           TabOrder = 7
           Transparent = True
-          OnClick = NxButton2Click
+          OnClick = btnSubstitutoClick
         end
       end
       object gbxLote_Protocolo: TRzGroupBox
@@ -2767,10 +2767,10 @@ object frmCadNotaServico_acbr: TfrmCadNotaServico_acbr
         Top = 149
         Width = 1212
         Height = 486
-        ActivePage = TabSheet1
+        ActivePage = TabSheet2
         ActivePageDefault = TabSheet1
         Align = alClient
-        TabIndex = 0
+        TabIndex = 1
         TabOrder = 1
         FixedDimension = 19
         object TabSheet1: TRzTabSheet
@@ -3312,7 +3312,7 @@ object frmCadNotaServico_acbr: TfrmCadNotaServico_acbr
                   end
                   item
                     Expanded = False
-                    FieldName = 'NOME_SERVICO_INT'
+                    FieldName = 'clDescricaoItem'
                     Font.Charset = DEFAULT_CHARSET
                     Font.Color = clBlue
                     Font.Height = -11

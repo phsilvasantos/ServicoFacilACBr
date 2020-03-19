@@ -262,7 +262,7 @@ type
     DBEdit47: TDBEdit;
     ValorPorExtenso1: TValorPorExtenso;
     chkOffLine: TCheckBox;
-    NxButton2: TNxButton;
+    btnSubstituto: TNxButton;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure btnExcluirClick(Sender: TObject);
     procedure btnInserirClick(Sender: TObject);
@@ -342,7 +342,7 @@ type
     procedure pnlClienteEnter(Sender: TObject);
     procedure BitBtn1Click(Sender: TObject);
     procedure btnConsultar_NFSeClick(Sender: TObject);
-    procedure NxButton2Click(Sender: TObject);
+    procedure btnSubstitutoClick(Sender: TObject);
   private
     { Private declarations }
     vEnvioACBR : Boolean;
@@ -4534,9 +4534,102 @@ begin
 
 end;
 
-procedure TfrmCadNotaServico_acbr.NxButton2Click(Sender: TObject);
+procedure TfrmCadNotaServico_acbr.btnSubstitutoClick(Sender: TObject);
 begin
-  ShowMessage('Função ainda não implementada!!');
+
+  if not(fDMCadNotaServico.cdsNotaServico_Consulta.Active) and (fDMCadNotaServico.cdsNotaServico_ConsultaID.AsInteger <= 0) then
+    exit;
+
+  if fDMCadNotaServico.cdsNotaServico_ConsultaNUMRPS_SUBSTITUIDO.AsInteger <= 0 then
+  begin
+    MessageDlg('Nota não possui o Número Substituído',mtWarning,[mbOK],0);
+    Exit;
+  end;
+
+  fDMCadNotaServico.prc_Localizar_Substituido(fDMCadNotaServico.cdsNotaServico_ConsultaNUMRPS_SUBSTITUIDO.AsInteger);
+  if fDMCadNotaServico.qConsultaNFSe_SubstituidoNUMNOTA.AsInteger <= 0 then
+  begin
+    MessageDlg('*** Nota nº ' + fDMCadNotaServico.qConsultaNFSe_SubstituidoNUMNOTA.AsString + ' não foi enviada!', mtError, [mbOk], 0);
+    exit;
+  end;
+  fDMCadNotaServico.prc_Abrir_Natureza;
+
+  vFilial := fDMCadNotaServico.cdsNotaServicoFILIAL.AsInteger;
+
+  if fDMCadNotaServico.qConsultaNFSe_SubstituidoSTATUS_RPS.AsString = '2' then
+  begin
+    MessageDlg('*** Nota nº ' + fDMCadNotaServico.qConsultaNFSe_SubstituidoNUMNOTA.AsString + ' já cancelada!', mtError, [mbOk], 0);
+    exit;
+  end;
+
+  fDMCadNotaServico.qVerDup.Close;
+  fDMCadNotaServico.qVerDup.ParamByName('ID_NOTA_SERVICO').AsInteger := fDMCadNotaServico.qConsultaNFSe_SubstituidoID.AsInteger;
+  fDMCadNotaServico.qVerDup.Open;
+  if fDMCadNotaServico.qVerDupCONTADOR.AsInteger > 0 then
+  begin
+    MessageDlg('*** Duplicata com pagamento ou com título enviado ao banco, favor verificar!', mtError, [mbOk], 0);
+    exit;
+  end;
+
+  if MessageDlg('Deseja Substituir a nota ' +  fDMCadNotaServico.qConsultaNFSe_SubstituidoNUMNOTA.AsString + '?',mtConfirmation,[mbYes,mbNo],0) = mrNo then
+    exit;
+
+  fDMCadNotaServico.vCod_Cancelamento   := 0;
+  fDMCadNotaServico.vMotivoCancelamento := '';
+  fDMCadNotaServico.vDtCancelamento     := 0;
+
+  dmDatabase.sqEmpresa.Close;
+  dmDatabase.sqEmpresa.Open;
+  if not fDMCadNotaServico.cdsServico.Active then
+    fDMCadNotaServico.prc_Abrir_Servico;
+
+  if trim(RxDBLookupCombo1.Text) <> '' then
+    fDMCadNotaServico.cdsFilial.Locate('ID',RxDBLookupCombo1.KeyValue,[loCaseInsensitive])
+  else
+    fDMCadNotaServico.cdsFilial.Locate('ID',fDMCadNotaServico.cdsNotaServico_ConsultaFILIAL.AsInteger,[loCaseInsensitive]);
+  if trim(fDMCadNotaServico.cdsFilialINSCMUNICIPAL.AsString) = '' then
+  begin
+    MessageDlg('*** Filial sem inscrição municipal!', mtError, [mbOk], 0);
+    exit;
+  end;
+
+  fDMNFSe    := TdmNFSe.Create(Self);
+  fDMNFSe.fDMCadNotaServico := fDMCadNotaServico;
+  fDMNFSe.ConfigurarComponente;
+  fDMNFSe.ACBrNFSe1.NotasFiscais.Clear;
+  fDMNFSe.vCont := 0;
+
+  try
+    vNumLote_NFSe   := 0;
+    vProtocolo_Ret  := '';
+    vProtocolo_Ret2 := '';
+    vFilial_Sel     := 0;
+    fDMNFSe.vNumeroLote := fDMCadNotaServico.fnc_Buscar_NumLote(fDMCadNotaServico.cdsFilialID.AsInteger);
+    vNumLote_NFSe := fDMNFSe.vNumeroLote;
+
+    if (fnc_Existe_Nota) then
+    begin
+      if fDMCadNotaServico.cdsFilialID.AsInteger <> fDMCadNotaServico.cdsNotaServico_ConsultaFILIAL.AsInteger then
+        fDMCadNotaServico.cdsFilial.Locate('ID',fDMCadNotaServico.cdsNotaServico_ConsultaFILIAL.AsInteger,[loCaseInsensitive]);
+
+      vFilial_Sel := fDMCadNotaServico.cdsNotaServico_ConsultaFILIAL.AsInteger;
+      if (fDMCadNotaServico.cdsNotaServico_ConsultaNUMLOTE.AsInteger > 0) then
+        vNumLote_NFSe := fDMCadNotaServico.cdsNotaServico_ConsultaNUMLOTE.AsInteger;
+      if trim(fDMCadNotaServico.cdsNotaServico_ConsultaPROTOCOLO.AsString) <> '' then
+        vProtocolo_Ret := fDMCadNotaServico.cdsNotaServico_ConsultaPROTOCOLO.AsString;
+
+      fDMNFSe.prc_Abrir_NotaServico_Comunicacao(fDMCadNotaServico.cdsNotaServico_ConsultaID.AsInteger);
+      fdmNFSe.AlimentaComponente;
+      Inc(fDMNFSe.vCont);
+    end;
+    fDMNFSe.Substituir_Nfse;
+  finally
+    FreeAndNil(fDMNFSe);
+    prc_Consultar(0);
+    fDMCadNotaServico.cdsNotaServico_Consulta.Locate('ID',fDMCadNotaServico.cdsNotaServico_ConsultaID.AsInteger,[loCaseInsensitive]);
+  end;
+
+//  ShowMessage('Função ainda não implementada!!');
 end;
 
 end.

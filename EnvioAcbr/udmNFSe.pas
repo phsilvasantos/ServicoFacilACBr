@@ -62,6 +62,7 @@ type
 
     procedure SetID_NOTA(Value: Integer);
     procedure GravarCancelamento;
+    procedure GravarCancelamentoSubstituto;
     function GetNFSE_NUMERO_Enviada: String;
     function GetNotaEnviada: Boolean;
     procedure prc_Gravar_Retorno(Caminho : String);
@@ -83,6 +84,7 @@ type
     function fnc_monta_discriminacao : String;
     procedure ConfigurarComponente;
     procedure Cancelar_Nfse;
+    procedure Substituir_Nfse;
 
     procedure TestarCertificado;
     class procedure Gerar(pID_NOTA: Integer);
@@ -325,7 +327,7 @@ begin
       else
         Servico.CodigoTributacaoMunicipio := fDMCadNotaServico.cdsFilialCOD_TRIBUTACAO_MUNICIPIO.AsString;
 
-      if (NaturezaOperacao = no2) or (NaturezaOperacao = no63) then /// FORA DO MUNICIPIO
+      if (NaturezaOperacao = no2) or (NaturezaOperacao = no63) or (NaturezaOperacao = no52) then /// FORA DO MUNICIPIO
       begin
         servico.CodigoMunicipio := fDMCadNotaServico.cdsNotaServico_ImpCOD_MUNICIPIO_TRIB.AsString;
         if servico.CodigoMunicipio = EmptyStr then
@@ -1165,6 +1167,70 @@ begin
   vZero := '0' + vZero;
   vAux := vZero + vAux;
   result := vAux;
+end;
+
+procedure TdmNFSe.Substituir_Nfse;
+var
+  Caminho : String;
+  Motivo : String;
+begin
+  if Assigned(fDMCadNotaServico) then
+    Caminho := fDMCadNotaServico.cdsParametrosENDXMLNFSE.AsString + '\Nfs.xml';
+
+  Motivo := '2';
+  ACBrNFSe1.SubstituirNFSe(Motivo, fDMCadNotaServico.qConsultaNFSe_SubstituidoNUMRPS.AsString);
+
+
+  if ACBrNFSe1.NotasFiscais.Items[0].NFSe.CodigoVerificacao <> '' then
+  begin
+    DataEmissaoRet := Now;
+    ACBrNFSe1.NotasFiscais.GravarXML(Caminho);
+    prc_Gravar_Retorno(ACBrNFSe1.NotasFiscais.Items[0].NomeArq);
+    ACBrNFSe1.NotasFiscais.Items[0].NFSe.Competencia :=
+     fDMCadNotaServico.cdsNotaServico_ImpAno_REF.AsString + ZeroLeft(fDMCadNotaServico.cdsNotaServico_ImpMES_REF.AsString,2);
+  end;
+  if ACBrNFSe1.WebServices.SubNfse.CodigoCancelamento <> EmptyStr then
+  begin
+    GravarCancelamentoSubstituto;
+  end;
+  ImprimirNfse;
+  ACBrNFSe1.NotasFiscais.Clear;
+end;
+
+procedure TdmNFSe.GravarCancelamentoSubstituto;
+var
+  COD_CADSERVICO: integer;
+  NFSE_NUMERO, Caminho: string;
+begin
+  Caminho := ExtractFilePath(Application.ExeName) + 'Xml-Nfs\Nfs.xml';
+  ACBrNFSe1.NotasFiscais.Items[vCont].GravarXML(ExtractFileName(Caminho), ExtractFilePath(Caminho));
+  fDMCadNotaServico.prc_Localizar(fDMCadNotaServico.qConsultaNFSe_SubstituidoID.AsInteger);
+  if not (fDMCadNotaServico.cdsNotaServico.IsEmpty) then
+  begin
+    fDMCadNotaServico.cdsNotaServico.Edit;
+    fDMCadNotaServico.cdsNotaServicoSTATUS_RPS.AsString := '2';
+    fDMCadNotaServico.cdsNotaServicoDTCANCELAMENTO.AsDateTime := ACBrNFSe1.WebServices.SubNFSe.DataHora;
+    fDMCadNotaServico.cdsNotaServico.Post;
+    fDMCadNotaServico.cdsNotaServico.ApplyUpdates(0);
+
+    fDMCadNotaServico.prc_Abrir_Comunicacao(fDMCadNotaServico.qConsultaNFSe_SubstituidoID.AsInteger);
+    if fDMCadNotaServico.cdsNotaServico_Comunicacao.Locate('TIPO',2,[loCaseInsensitive]) then
+      fDMCadNotaServico.cdsNotaServico_Comunicacao.Edit
+    else
+    begin
+      fDMCadNotaServico.cdsNotaServico_Comunicacao.Insert;
+      fDMCadNotaServico.cdsNotaServico_ComunicacaoID.AsInteger := dmDatabase.ProximaSequencia('NOTASERVICO_COMUNICACAO',0);
+    end;
+
+    fDMCadNotaServico.cdsNotaServico_ComunicacaoDATA_HORA.AsDateTime := ACBrNFSe1.WebServices.SubNFSe.DataRecebimento;
+    fDMCadNotaServico.cdsNotaServico_ComunicacaoID_NOTASERVICO.AsInteger := fDMCadNotaServico.qConsultaNFSe_SubstituidoID.AsInteger;
+    fDMCadNotaServico.cdsNotaServico_ComunicacaoNFSE_NUMERO.AsString := ACBrNFSe1.WebServices.SubNFSe.NumeroNFSe;
+    fDMCadNotaServico.cdsNotaServico_ComunicacaoCODIGOVERIFICACAO.AsString := ACBrNFSe1.WebServices.SubNFSe.CodigoCancelamento;
+    fDMCadNotaServico.cdsNotaServico_ComunicacaoTIPO.AsString := '2';
+    fDMCadNotaServico.cdsNotaServico_ComunicacaoXML.LoadFromFile(ACBrNFSe1.NotasFiscais.Items[0].NomeArq);
+    fDMCadNotaServico.cdsNotaServico_Comunicacao.Post;
+    fDMCadNotaServico.cdsNotaServico_Comunicacao.ApplyUpdates(0);
+  end;
 end;
 
 end.

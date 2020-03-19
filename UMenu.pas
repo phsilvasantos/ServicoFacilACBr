@@ -511,7 +511,7 @@ end;
 
 procedure TfMenu.OrdemdeServio1Click(Sender: TObject);
 begin
-  OpenForm(TfrmCadOrdemServico,wsMaximized);
+  OpenForm(TfrmGerar_NFSe,wsMaximized);
 end;
 
 procedure TfMenu.OrdemdeServioBaixa1Click(Sender: TObject);
@@ -710,7 +710,7 @@ end;
 
 procedure TfMenu.tbProdutoClick(Sender: TObject);
 begin
-  OpenForm(TfrmCadServico_Int,wsMaximized);
+  OpenForm(TfrmCadContrato,wsMaximized);
 end;
 
 procedure TfMenu.tbNotaFiscalClick(Sender: TObject);
